@@ -2,36 +2,28 @@ import requests
 
 
 class YaUploader:
-
-    def __init__(self, token):
+    def __init__(self, token: str):
         self.token = token
 
-    def get_headers(self):
-        return {
-            'Content-Type': 'application/json',
-            'Authorization': 'OAuth {}'.format(self.token)
-        }
-
-    def _get_upload_link(self, disk_file_path):
-        upload_url = "https://cloud-api.yandex.net/v1/disk/resources/upload"
-        headers = self.get_headers()
-        params = {"path": disk_file_path, "overwrite": "true"}
-        response = requests.get(upload_url, headers=headers, params=params)
-        return response.json()
-
-    def upload(self, disk_file_path, filename):
-        response_link = self._get_upload_link(disk_file_path=disk_file_path)
-        href = response_link.get("href", "")
-        response = requests.put(href, data=open(filename, 'rb'))
-        response.raise_for_status()
-        if response.status_code == 201:
-            print("Success")
+    def upload_file(self, loadfile, savefile, replace=False):
+        """Загрузка файла.
+            savefile: Путь к файлу на Диске
+            loadfile: Путь к загружаемому файлу"""
+        headers = {'Content-Type': 'application/json', 'Accept': 'application/json', 'Authorization': f'OAuth {self.token}'}
+        URL = "https://cloud-api.yandex.net/v1/disk/resources"
+        res = requests.get(f'{URL}/upload?path={savefile}&overwrite={replace}', headers=headers).json()
+        with open(loadfile, 'rb') as f:
+            try:
+                requests.put(res['href'], files={'file': f})
+            except KeyError:
+                print(res)
 
 
 if __name__ == '__main__':
-
+    # Получить путь к загружаемому файлу и токен от пользователя
     path_to_file = ""
-    filename = ""
+    file_name = "file"
+    yandex_disk_path = f"Test/{file_name}"
     token = ""
     uploader = YaUploader(token)
-    result = uploader.upload(disk_file_path=path_to_file, filename=filename)
+    result = uploader.upload_file(savefile=yandex_disk_path, loadfile=path_to_file)
