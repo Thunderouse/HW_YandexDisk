@@ -34,4 +34,4 @@ if __name__ == '__main__':
     filename = ""
     token = ""
     uploader = YaUploader(token)
-    result = uploader.upload(path_to_file, filename)
+    result = uploader.upload(disk_file_path=path_to_file, filename=filename)
